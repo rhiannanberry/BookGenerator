@@ -23,7 +23,7 @@ function main() {
   }
 
   const bookSize = { x: 3, y: 6, z: 10 };
-  const coverThickness = 0.5; // coverThickness < bookSize.y, coverThickness < bookSize.x / 2
+  var coverThickness = 0.5; // coverThickness < bookSize.y, coverThickness < bookSize.x / 2
   const paperSize = { y: 5.2, z: 9 }; // y < bookSize.y + coverThickness, z < bookSize.z
   const spineCurve = 0;
 
@@ -112,7 +112,7 @@ function main() {
           coverOuterY.push([index, e]);
         } else if (Math.abs(e) >= 0.55) {
           paperOuterY.push([index, Math.sign(e)]);
-        } else if (e < 0.52) {
+        } else if (e < 0.25) {
           paperInnerY.push([index, 1]);
         } else {
           paperInnerY.push([index, 0.25]);
@@ -140,16 +140,20 @@ function main() {
       colors.push(colorLoop[index % 18]);
       sequencePosition = (sequencePosition + 1) % 3;
     });
-    function resizeCoverY(newY) {
-      bookSize.y = newY;
+    function resizeCoverThickness(newThickness) {
+      coverThickness = newThickness;
       const y2 = bookSize.y / 2;
       const p2 = paperSize.y / 2;
       const pOffset = y2 - coverThickness - p2;
-      coverOuterY.forEach((v) => { vertexArray[v[0]] = v[1] * y2; });
       paperOuterY.forEach((v) => { vertexArray[v[0]] = (v[1] * p2) + pOffset; });
-      paperInnerY.forEach((v) => { vertexArray[v[0]] = y2 - coverThickness - (v[2] * coverThickness)})
-
-      console.log(paperInnerY)
+      paperInnerY.forEach((v) => { vertexArray[v[0]] = y2 - coverThickness - (v[1] * coverThickness)})
+    }
+    function resizeCoverY(newY) {
+      bookSize.y = newY;
+      const y2 = bookSize.y / 2;
+      coverOuterY.forEach((v) => { vertexArray[v[0]] = v[1] * y2; });
+      resizeCoverThickness(coverThickness);
+      
     }
     function resizeCoverZ(newZ) {
       bookSize.z = newZ;
@@ -205,7 +209,7 @@ function main() {
 
     if (bk) {
       bk.rotation.y = time * 0.5;
-      bk.rotation.x = time * 0.3;
+      //bk.rotation.x = time * 0.3;
     }
 
     renderer.render(scene, camera);
