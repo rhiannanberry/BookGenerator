@@ -52,10 +52,6 @@ function main() {
   const coverOuterY = [];
   const paperOuterY = [];
   const paperInnerY = [];
-  const coverTopY = [];
-  const coverBotY = [];
-  const paperTopY = [];
-  const paperBotY = [];
 
   const col1 = [];
   const col2 = [];
@@ -67,7 +63,12 @@ function main() {
 
   const outerZ = [];
   const innerZ = [];
-  // const paperEndY = [];
+
+  const updateSegment = {
+    cover: { x: true, y: true, z: true },
+    paper: { x: true, y: true, z: true },
+    coverThickness: true,
+  };
 
   const colorLoop = new Uint8Array([
     255, 0, 0,
@@ -117,19 +118,6 @@ function main() {
         } else {
           paperInnerY.push([index, 0.25]);
         }
-        /*if (e >= 0.9) {
-          coverTopY.push([index, e]);
-        } else if (e <= -1) {
-          coverBotY.push([index, e]);
-        } else if (e <= -0.59) {
-          paperBotY.push([index, e]);
-        } else if (e <= 0.21) {
-          vertexArray[index] = coverBoundingBox.max.y - (coverThickness * 2); //
-        } else if (e <= 0.51) {
-          vertexArray[index] = coverBoundingBox.max.y - (coverThickness * 1.25);
-        } else {
-          paperTopY.push([index, e]);
-        }*/
       } else if (sequencePosition === 2) {
         if (Math.abs(e) <= 0.65) {
           innerZ.push([index, Math.sign(e)]);
@@ -140,14 +128,49 @@ function main() {
       colors.push(colorLoop[index % 18]);
       sequencePosition = (sequencePosition + 1) % 3;
     });
-    function resizeCoverThickness(newThickness) {
-      coverThickness = newThickness;
+
+    function resizePaperX(newX) {
+      const w2t = bookSize.x / 2 - coverThickness;
+
+      col1.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
+      col2.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
+      col3.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
+      col4.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
+      col5.forEach((v) => { vertexArray[v[0]] = ((bookSize.x / 2) - (v[1] * coverThickness)) * v[2]; });
+      col6.forEach((v) => { vertexArray[v[0]] = ((bookSize.x / 2) - (v[1] * coverThickness)) * v[2]; });
+      col7.forEach((v) => { vertexArray[v[0]] = v[1] * (bookSize.x / 2) * v[2]; });
+    }
+
+    function resizePaperZ(newZ) {
+      paperSize.z = newZ;
+      innerZ.forEach((v) => { vertexArray[v[0]] = v[1] * (paperSize.z / 2); });
+    }
+
+    function resizePaperY(newY) {
+      paperSize.y = newY;
       const y2 = bookSize.y / 2;
       const p2 = paperSize.y / 2;
       const pOffset = y2 - coverThickness - p2;
       paperOuterY.forEach((v) => { vertexArray[v[0]] = (v[1] * p2) + pOffset; });
       paperInnerY.forEach((v) => { vertexArray[v[0]] = y2 - coverThickness - (v[1] * coverThickness)})
     }
+
+    function resizeCoverThickness(newThickness) {
+      coverThickness = newThickness;
+
+      resizePaperY(paperSize.y);
+
+      const w2t = bookSize.x / 2 - coverThickness;
+
+      col1.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
+      col2.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
+      col3.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
+      col4.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
+      col5.forEach((v) => { vertexArray[v[0]] = ((bookSize.x / 2) - (v[1] * coverThickness)) * v[2]; });
+      col6.forEach((v) => { vertexArray[v[0]] = ((bookSize.x / 2) - (v[1] * coverThickness)) * v[2]; });
+      col7.forEach((v) => { vertexArray[v[0]] = v[1] * (bookSize.x / 2) * v[2]; });
+    }
+    
     function resizeCoverY(newY) {
       bookSize.y = newY;
       const y2 = bookSize.y / 2;
@@ -161,22 +184,10 @@ function main() {
     }
     resizeCoverY(bookSize.y);
     resizeCoverZ(bookSize.z);
-    //coverTopY.forEach((v) => { vertexArray[v[0]] = coverBoundingBox.max.y; });
-    //coverBotY.forEach((v) => { vertexArray[v[0]] = coverBoundingBox.min.y; });
-    //paperTopY.forEach((v) => { vertexArray[v[0]] = paperBoundingBox.max.y; });
-    //paperBotY.forEach((v) => { vertexArray[v[0]] = paperBoundingBox.min.y; });
+    resizePaperX(paperSize.x);
+    resizePaperZ(paperSize.z);
 
-    const w2t = bookSize.x / 2 - coverThickness;
-
-    col1.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-    col2.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-    col3.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-    col4.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-    col5.forEach((v) => { vertexArray[v[0]] = ((bookSize.x / 2) - (v[1] * coverThickness)) * v[2]; });
-    col6.forEach((v) => { vertexArray[v[0]] = ((bookSize.x / 2) - (v[1] * coverThickness)) * v[2]; });
-    col7.forEach((v) => { vertexArray[v[0]] = v[1] * (bookSize.x / 2) * v[2]; });
-
-    innerZ.forEach((v) => { vertexArray[v[0]] = v[1] * (paperSize.z / 2); });
+    
     
 
     gltf.scene.children[0].geometry.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(colors), 3, true));
