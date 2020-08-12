@@ -2,6 +2,7 @@ import { GLTFLoader } from 'https://threejsfundamentals.org/threejs/resources/th
 import * as THREE from './node_modules/three/build/three.module.js';
 
 function main() {
+
   const canvas = document.querySelector('#c');
   const renderer = new THREE.WebGLRenderer({ canvas });
 
@@ -229,6 +230,11 @@ function main() {
   }
 
   requestAnimationFrame(render);
+
+  document.querySelector("input").addEventListener("change", (e) => {
+    console.log(e);
+  });
 }
 
 main();
+

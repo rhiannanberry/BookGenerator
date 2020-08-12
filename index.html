@@ -1,20 +1,50 @@
 <html>
   <head>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
     <script type="module" src="main.js"></script>
   </head>
   <body>
     <canvas id="c"></canvas>
+    <div id="ui-group">
+      
+      <div class="slider" id="book-width">
+        <div>Book Width</div>
+        <input type="range" min="1" max="100" value="50"/>
+      </div>
+      <div class="slider" id="book-height">
+        <div>Book Height</div>
+        <input type="range" min="1" max="100" value="50"/>
+      </div>
+      <div class="slider" id="book-thickness">
+        <div>Book Thickness</div>
+        <input type="range" min="1" max="100" value="50"/>
+      </div>
+    </div>
+    
   
   </body>
   <style>
       body {
-  margin: 0;
-}
-#c {
-  width: 100vw;
-  height: 100vh;
-  display: block;
-}
+        margin: 0;
+      }
+      #c {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
+
+      #ui-group {
+        font-family: 'Roboto';
+        color:white;
+        position: absolute;
+        top:0px;
+        left:0px;
+        bottom:0px;
+      }
+
+      .slider {
+        padding: 5px;
+      }
 
   </style>
 </html>
