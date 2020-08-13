@@ -1,8 +1,9 @@
 import { GLTFLoader } from 'https://threejsfundamentals.org/threejs/resources/threejs/r119/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from './node_modules/three/build/three.module.js';
+import Book from './js/book.js';
+//processing, updating, rendering, ui
 
 function main() {
-
   const canvas = document.querySelector('#c');
   const renderer = new THREE.WebGLRenderer({ canvas });
 
@@ -23,53 +24,8 @@ function main() {
     scene.add(light);
   }
 
-  const bookSize = { x: 3, y: 6, z: 10 };
-  var coverThickness = 0.5; // coverThickness < bookSize.y, coverThickness < bookSize.x / 2
-  const paperSize = { y: 5.2, z: 9 }; // y < bookSize.y + coverThickness, z < bookSize.z
   const spineCurve = 0;
 
-  const coverBoundingBox = {
-    min: {
-      x: -bookSize.x / 2, y: -bookSize.y / 2, z: -bookSize.z / 2,
-    },
-    max: {
-      x: bookSize.x / 2, y: bookSize.y / 2, z: bookSize.z / 2,
-    },
-  };
-
-  const paperBoundingBox = {
-    min: {
-      x: coverBoundingBox.min.x + coverThickness,
-      y: coverBoundingBox.max.y - coverThickness - paperSize.y,
-      z: -paperSize.z / 2,
-    },
-    max: {
-      x: coverBoundingBox.max.x - coverThickness,
-      y: coverBoundingBox.max.y - coverThickness,
-      z: paperSize.z / 2,
-    },
-  };
-
-  const coverOuterY = [];
-  const paperOuterY = [];
-  const paperInnerY = [];
-
-  const col1 = [];
-  const col2 = [];
-  const col3 = [];
-  const col4 = [];
-  const col5 = [];
-  const col6 = [];
-  const col7 = [];
-
-  const outerZ = [];
-  const innerZ = [];
-
-  const updateSegment = {
-    cover: { x: true, y: true, z: true },
-    paper: { x: true, y: true, z: true },
-    coverThickness: true,
-  };
 
   const colorLoop = new Uint8Array([
     255, 0, 0,
@@ -79,7 +35,8 @@ function main() {
     0, 255, 255,
     255, 0, 255,
   ]);
-
+  const book = new Book('unit_book_merged.glb', scene);
+  /*
   let bk = null;
 
   const loader = new GLTFLoader();
@@ -90,34 +47,22 @@ function main() {
     const colors = [];
     bk = gltf.scene.children[0];
     vertexArray.forEach((e, index) => {
+      const ee = e.toFixed(1);
       if (sequencePosition === 0) {
-        if (Math.abs(e) < 0.05) {
-
-        } else if (Math.abs(e) <= 0.2) {
-          col1.push([index, (1 / 6), Math.sign(e)]);
-        } else if (Math.abs(e) <= 0.4) {
-          col2.push([index, 1 / 2, Math.sign(e)]);
-        } else if (Math.abs(e) <= 0.55) {
-          col3.push([index, 5 / 6, Math.sign(e)]);
-        } else if (Math.abs(e) <= 0.65) {
-          col4.push([index, 1, Math.sign(e)]);
-        } else if (Math.abs(e) <= 0.75) {
-          col5.push([index, 3 / 4, Math.sign(e)]);
-        } else if (Math.abs(e) <= 0.95) {
-          col6.push([index, 1 / 4, Math.sign(e)]);
+        if (Math.abs(ee) <= 0.6) {
+          col.push([index, ee]);
         } else {
-          col7.push([index, 1, Math.sign(e)]);
+          coll2.push([index, ee]);
         }
       } else if (sequencePosition === 1) {
         // colors.push(255*e);
+        if (ee <= 0.6 && ee >= 0.2) {
+          innerY.push([index, ee]);
+        } else if (ee == -0.6) {
+          paperEdgeY.push([index, -1]);
+        }
         if (Math.abs(e) >= 0.95) {
           coverOuterY.push([index, e]);
-        } else if (Math.abs(e) >= 0.55) {
-          paperOuterY.push([index, Math.sign(e)]);
-        } else if (e < 0.25) {
-          paperInnerY.push([index, 1]);
-        } else {
-          paperInnerY.push([index, 0.25]);
         }
       } else if (sequencePosition === 2) {
         if (Math.abs(e) <= 0.65) {
@@ -133,12 +78,11 @@ function main() {
     function resizePaperX(newX) {
       const w2t = bookSize.x / 2 - coverThickness;
 
-      col1.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-      col2.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-      col3.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-      col4.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-      col5.forEach((v) => { vertexArray[v[0]] = ((bookSize.x / 2) - (v[1] * coverThickness)) * v[2]; });
-      col6.forEach((v) => { vertexArray[v[0]] = ((bookSize.x / 2) - (v[1] * coverThickness)) * v[2]; });
+      col.forEach((v) => { vertexArray[v[0]] = v[1] * (10 / 6) * w2t; });
+      coll2.forEach((v) => {
+        const off = (Math.abs(v[1]) - 0.6) * (10 / 4) * coverThickness;
+        vertexArray[v[0]] = (w2t + off) * Math.sign(v[1]);
+      });
       col7.forEach((v) => { vertexArray[v[0]] = v[1] * (bookSize.x / 2) * v[2]; });
     }
 
@@ -152,8 +96,11 @@ function main() {
       const y2 = bookSize.y / 2;
       const p2 = paperSize.y / 2;
       const pOffset = y2 - coverThickness - p2;
-      paperOuterY.forEach((v) => { vertexArray[v[0]] = (v[1] * p2) + pOffset; });
-      paperInnerY.forEach((v) => { vertexArray[v[0]] = y2 - coverThickness - (v[1] * coverThickness)})
+      paperEdgeY.forEach((v) => { vertexArray[v[0]] = (v[1] * p2) + pOffset; });
+      innerY.forEach((v) => {
+        const off = (0.6 - v[1]) * (10 / 4) * coverThickness;
+        vertexArray[v[0]] = y2 - coverThickness - off;
+      });
     }
 
     function resizeCoverThickness(newThickness) {
@@ -162,22 +109,19 @@ function main() {
       resizePaperY(paperSize.y);
 
       const w2t = bookSize.x / 2 - coverThickness;
-
-      col1.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-      col2.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-      col3.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-      col4.forEach((v) => { vertexArray[v[0]] = v[1] * w2t * v[2]; });
-      col5.forEach((v) => { vertexArray[v[0]] = ((bookSize.x / 2) - (v[1] * coverThickness)) * v[2]; });
-      col6.forEach((v) => { vertexArray[v[0]] = ((bookSize.x / 2) - (v[1] * coverThickness)) * v[2]; });
+      col.forEach((v) => { vertexArray[v[0]] = v[1] * w2t; });
+      coll2.forEach((v) => {
+        const off = (Math.abs(v[1]) - 0.6) * (10 / 4) * coverThickness;
+        vertexArray[v[0]] = (w2t + off) * Math.sign(v[1]);
+      });
       col7.forEach((v) => { vertexArray[v[0]] = v[1] * (bookSize.x / 2) * v[2]; });
     }
-    
+
     function resizeCoverY(newY) {
       bookSize.y = newY;
       const y2 = bookSize.y / 2;
       coverOuterY.forEach((v) => { vertexArray[v[0]] = v[1] * y2; });
       resizeCoverThickness(coverThickness);
-      
     }
     function resizeCoverZ(newZ) {
       bookSize.z = newZ;
@@ -188,9 +132,6 @@ function main() {
     resizePaperX(paperSize.x);
     resizePaperZ(paperSize.z);
 
-    
-    
-
     gltf.scene.children[0].geometry.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(colors), 3, true));
     gltf.scene.children[0].material.vertexColors = THREE.VertexColors;
     console.log(gltf.scene.children[0].geometry.attributes.color.array);
@@ -199,6 +140,7 @@ function main() {
     console.error(error);
   });
 
+  */
   function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
     const width = canvas.clientWidth;
@@ -219,10 +161,12 @@ function main() {
       camera.updateProjectionMatrix();
     }
 
-    if (bk) {
-      bk.rotation.y = time * 0.5;
-      //bk.rotation.x = time * 0.3;
+    if (book.model) {
+      book.model.rotation.y = time * 0.5;
+      // bk.rotation.x = time * 0.3;
     }
+
+    book.update();
 
     renderer.render(scene, camera);
 
@@ -230,11 +174,6 @@ function main() {
   }
 
   requestAnimationFrame(render);
-
-  document.querySelector("input").addEventListener("change", (e) => {
-    console.log(e);
-  });
 }
 
 main();
-
