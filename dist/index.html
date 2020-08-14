@@ -1,7 +1,7 @@
 <html>
   <head>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
-    <script type="module" src="main.js"></script>
+    
   </head>
   <body>
     <canvas id="c"></canvas>
@@ -9,31 +9,31 @@
       
       <div class="slider" id="book-width">
         <div>Book Width</div>
-        <input type="range" min="1" max="20" value="10"/>
+        <input type="range" min="1" max="10" value="10" step="0.1"/>
       </div>
       <div class="slider" id="book-height">
         <div>Book Height</div>
-        <input type="range" min="1" max="20" value="10"/>
+        <input type="range" min="1" max="10" value="10" step="0.1"/>
       </div>
       <div class="slider" id="book-thickness">
         <div>Book Thickness</div>
-        <input type="range" min="1" max="20" value="10"/>
-      </div>
-      <div class="slider" id="paper-height">
-        <div>Paper Height</div>
-        <input type="range" min="1" max="20" value="10"/>
-      </div>
-      <div class="slider" id="paper-width">
-        <div>Paper Width</div>
-        <input type="range" min="1" max="20" value="10"/>
+        <input type="range" min="0.5" max="10" value="10" step="0.1"/>
       </div>
       <div class="slider" id="cover-thickness">
         <div>Cover Thickness</div>
-        <input type="range" min="0.5" max="20" value="10" step="0.5"/>
+        <input type="range" min="0.1" max="3" value="0.2" step="0.1"/>
+      </div>
+      <div class="slider" id="cover-overhang">
+        <div>Overhang</div>
+        <input type="range" min="0.1" max="10" value="0.2" step="0.1"/>
+      </div>
+      <div class="button" id="title">
+        <button >New Title</button>
+        <span></span>
       </div>
     </div>
     
-  
+    <script src="main.js"></script>
   </body>
   <style>
       body {

@@ -1,8 +1,21 @@
 /* eslint-disable no-underscore-dangle */
-import { GLTFLoader } from 'https://threejsfundamentals.org/threejs/resources/threejs/r119/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import * as THREE from 'three/build/three.module';
+
+function loadNormalMap() {
+  const nMap = new THREE.TextureLoader().load('../Normal.png');
+  const tMap = new THREE.TextureLoader().load('../Texture.png');
+
+  nMap.flipY = false;
+  tMap.flipY = false;
+
+  return new THREE.MeshStandardMaterial({ normalMap: nMap, map: tMap });
+}
 
 export default class Book {
   constructor(src, scene) {
+    this.modelLoaded = false;
+    this.textureLoaded = false;
     this.loaded = false;
     this.model = null;
     this.vertices = null;
@@ -11,11 +24,13 @@ export default class Book {
       book: { x: 0, y: 0, z: 0 },
       paper: { y: 0, z: 0 },
       coverThickness: 0,
+      coverOverhang: 0,
     };
     this.scale = {
       book: { x: 3, y: 6, z: 10 },
       paper: { y: 5.2, z: 9 },
       coverThickness: 0.5,
+      coverOverhang: 0.1,
     };
 
     (new GLTFLoader()).load(src, (gltf) => {
@@ -30,39 +45,47 @@ export default class Book {
   }
 
   // all setters need validation, and will return the validated or clamped value
+  setPaperScale() {
+    this.scale.paper.y = this.scale.book.y - this.scale.coverThickness - this.scale.coverOverhang;
+    this.scale.paper.z = this.scale.book.z - (2 * this.scale.coverOverhang);
+  }
 
   setBookScaleX(newX) {
-    this.scale.book.x = Math.max(newX, this.scale.coverThickness * this.scale.coverThickness);
+    this.scale.book.x = Math.max(newX, 2 * this.scale.coverThickness);
     return this.scale.book.x;
   }
 
   setBookScaleY(newY) {
     this.scale.book.y = Math.max(newY, this.scale.paper.y + this.scale.coverThickness);
+    this.setPaperScale();
     return this.scale.book.y;
   }
 
   setBookScaleZ(newZ) {
     this.scale.book.z = Math.max(newZ, this.scale.paper.z);
+    this.setPaperScale();
     return this.scale.book.z;
-  }
-
-  setPaperScaleY(newY) {
-    this.scale.paper.y = Math.min(newY, this.scale.book.y - this.scale.coverThickness);
-    return this.scale.paper.y;
-  }
-
-  setPaperScaleZ(newZ) {
-    this.scale.paper.z = Math.min(newZ, this.scale.book.z);
-    return this.scale.paper.z;
   }
 
   setCoverThickness(newThickness) {
     this.scale.coverThickness = Math.min(newThickness, this.scale.book.x / 2,
       this.scale.book.y - this.scale.paper.y);
+    this.setPaperScale();
     return this.scale.coverThickness;
   }
 
+  setCoverOverhang(newOverhang) {
+    this.scale.coverOverhang = Math.min(newOverhang, this.scale.book.z / 2,
+      this.scale.book.y - this.scale.coverThickness);
+    this.setPaperScale();
+    return this.scale.coverOverhang;
+  }
+
   preprocess() {
+    this.model.material = loadNormalMap();
+
+    this.model.rotation.x = Math.PI/2 - .2;
+
     this.vertexGroups = {
       x: { pages: [], cover: [] },
       y: { pages: [], pageEdge: [], cover: [] },
@@ -103,28 +126,24 @@ export default class Book {
     const bookY = document.querySelector('#book-width > input');
     const bookZ = document.querySelector('#book-height > input');
 
-    const paperY = document.querySelector('#paper-width > input');
-    const paperZ = document.querySelector('#paper-height > input');
     const coverThickness = document.querySelector('#cover-thickness > input');
+    const coverOverhang = document.querySelector('#cover-overhang > input');
 
     bookX.value = this.scale.book.x;
     bookY.value = this.scale.book.y;
     bookZ.value = this.scale.book.z;
 
-    paperY.value = this.scale.paper.y;
-    paperZ.value = this.scale.paper.z;
-
     coverThickness.value = this.scale.coverThickness;
+    coverOverhang.value = this.scale.coverOverhang;
+
+    this.setPaperScale();
 
     bookX.addEventListener('input', () => { bookX.value = this.setBookScaleX(bookX.value); });
     bookY.addEventListener('input', () => { bookY.value = this.setBookScaleY(bookY.value); });
     bookZ.addEventListener('input', () => { bookZ.value = this.setBookScaleZ(bookZ.value); });
 
-    paperY.addEventListener('input', () => { paperY.value = this.setPaperScaleY(paperY.value); });
-    paperZ.addEventListener('input', () => { paperZ.value = this.setPaperScaleZ(paperZ.value); });
-
     coverThickness.addEventListener('input', () => { coverThickness.value = this.setCoverThickness(coverThickness.value); });
-
+    coverOverhang.addEventListener('input', () => { coverOverhang.value = this.setCoverOverhang(coverOverhang.value); });
     this.loaded = true;
     this.update();
   }
