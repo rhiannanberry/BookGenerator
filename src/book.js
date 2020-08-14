@@ -1,6 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry';
 import * as THREE from 'three/build/three.module';
+import { Vector3 } from 'three';
 
 function loadNormalMap() {
   const nMap = new THREE.TextureLoader().load('../Normal.png');
@@ -13,7 +15,7 @@ function loadNormalMap() {
 }
 
 export default class Book {
-  constructor(src, scene) {
+  constructor(src, scene, mat) {
     this.modelLoaded = false;
     this.textureLoaded = false;
     this.loaded = false;
@@ -38,6 +40,12 @@ export default class Book {
       this.vertices = this.model.geometry.attributes.position.array;
       scene.add(this.model);
       this.preprocess();
+      const rot = this.model.rotation.clone();
+      rot.z = Math.PI / 2;
+      const d = new DecalGeometry(this.model, new Vector3(0, 3, 0), rot, new Vector3(8,8,.5));
+      const m = new THREE.Mesh(d, mat);
+
+      this.model.add(m);
     }, undefined, (error) => {
       console.error(error);
     });
@@ -84,7 +92,7 @@ export default class Book {
   preprocess() {
     this.model.material = loadNormalMap();
 
-    this.model.rotation.x = Math.PI/2 - .2;
+    this.model.rotation.x = Math.PI/2 ;
 
     this.vertexGroups = {
       x: { pages: [], cover: [] },

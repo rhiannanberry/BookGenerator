@@ -1,6 +1,7 @@
 import * as THREE from 'three/build/three.module';
 import Book from './book';
 import grab from './wikigrab';
+import {getTitleTexture} from './decorate';
 // processing, updating, rendering, ui
 
 function main() {
@@ -34,12 +35,27 @@ function main() {
     0, 255, 255,
     255, 0, 255,
   ]);
-  const book = new Book('unit_book_merged.glb', scene);
+  const titleMat = new THREE.MeshStandardMaterial({
+    transparent: true,
+    polygonOffset: true,
+    polygonOffsetFactor: -4,
+    depthTest: true,
+    depthWrite: false,
+  });
+  const book = new Book('unit_book_merged.glb', scene, titleMat);
 
   const titleButton = document.querySelector('#title > button');
   const title = document.querySelector('#title > span');
   function getTitle() {
-    grab((data) => { title.innerHTML = data; });
+    grab((data) => {
+      const tMap = getTitleTexture(data);
+      tMap.flipY = false;
+      title.innerHTML = data;
+      titleMat.map = tMap;
+      titleMat.displacementMap = tMap;
+      titleMat.needsUpdate = true;
+      console.log(scene);
+    });
   }
   titleButton.addEventListener('click', getTitle);
   getTitle();
