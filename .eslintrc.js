@@ -10,6 +10,11 @@ module.exports = {
     ecmaVersion: 11,
     sourceType: 'module',
   },
+  overrides: [
+    {
+      excludedFiles: 'docs/*.js',
+    }
+  ],
   rules: {
   },
 };

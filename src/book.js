@@ -11,7 +11,7 @@ function loadNormalMap() {
   nMap.flipY = false;
   tMap.flipY = false;
 
-  return new THREE.MeshStandardMaterial({ normalMap: nMap, map: tMap });
+  return new THREE.MeshStandardMaterial({ normalMap: nMap, map: tMap, roughness: 0.8 });
 }
 
 export default class Book {
@@ -21,6 +21,8 @@ export default class Book {
     this.loaded = false;
     this.model = null;
     this.vertices = null;
+    this.frontDecal = null;
+    this.sideDecal = null;
 
     this._scale = {
       book: { x: 0, y: 0, z: 0 },
@@ -41,11 +43,18 @@ export default class Book {
       scene.add(this.model);
       this.preprocess();
       const rot = this.model.rotation.clone();
+      const rot2 = this.model.rotation.clone();
       rot.z = Math.PI / 2;
-      const d = new DecalGeometry(this.model, new Vector3(0, 3, 0), rot, new Vector3(8,8,.5));
-      const m = new THREE.Mesh(d, mat);
+      rot2.y = -Math.PI / 2;
+      const cube = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1));
+      const d = new DecalGeometry(cube, new Vector3(0, 0, 0), rot, new Vector3(1, 1, 1));
+      const dFront = new DecalGeometry(cube, new Vector3(0, 0, 0), rot2, new Vector3(1, 1, 1));
+      this.sideDecal = new THREE.Mesh(d, mat);
+      this.frontDecal = new THREE.Mesh(dFront, mat);
 
-      this.model.add(m);
+      this.model.add(this.sideDecal);
+      this.model.add(this.frontDecal);
+      this.update();
     }, undefined, (error) => {
       console.error(error);
     });
@@ -153,7 +162,23 @@ export default class Book {
     coverThickness.addEventListener('input', () => { coverThickness.value = this.setCoverThickness(coverThickness.value); });
     coverOverhang.addEventListener('input', () => { coverOverhang.value = this.setCoverOverhang(coverOverhang.value); });
     this.loaded = true;
-    this.update();
+  }
+
+  updateDecalPositions() {
+    const yzRatio = (this.scale.book.y - (2 * this.scale.coverThickness)) / this.scale.book.z;
+
+    this.frontDecal.scale.x = this.scale.coverThickness / 2;
+    this.frontDecal.scale.y = Math.min(this.scale.book.z, this.scale.book.z * yzRatio);
+    this.frontDecal.scale.z = Math.min(this.scale.book.z, this.scale.book.z * yzRatio);
+    this.frontDecal.position.x = this.scale.book.x / 2 - this.scale.coverThickness / 4;
+    this.frontDecal.position.y = -this.scale.coverThickness;
+    this.frontDecal.position.z = -this.scale.book.z / 2 + this.frontDecal.scale.y / 2;
+
+    const xzRatio = this.scale.book.x / this.scale.book.z;
+    this.sideDecal.scale.z = Math.min(this.scale.book.z, this.scale.book.z * xzRatio);
+    this.sideDecal.scale.x = Math.min(this.scale.book.z, this.scale.book.z * xzRatio);
+    this.sideDecal.scale.y = this.scale.coverThickness / 2;
+    this.sideDecal.position.y = (this.scale.book.y - this.sideDecal.scale.y) / 2;
   }
 
   update() {
@@ -227,6 +252,7 @@ export default class Book {
       updateModel = true;
     }
     if (updateModel) {
+      this.updateDecalPositions();
       this.model.geometry.attributes.position.needsUpdate = true;
     }
   }

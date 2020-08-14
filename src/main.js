@@ -1,7 +1,7 @@
 import * as THREE from 'three/build/three.module';
 import Book from './book';
 import grab from './wikigrab';
-import {getTitleTexture} from './decorate';
+import { getTitleTexture } from './decorate';
 // processing, updating, rendering, ui
 
 function main() {
@@ -41,6 +41,9 @@ function main() {
     polygonOffsetFactor: -4,
     depthTest: true,
     depthWrite: false,
+    roughness: 0.2,
+    opacity: 0.8,
+    color: new THREE.Color(0.95, 0.74, 0.25),
   });
   const book = new Book('unit_book_merged.glb', scene, titleMat);
 
@@ -54,7 +57,6 @@ function main() {
       titleMat.map = tMap;
       titleMat.displacementMap = tMap;
       titleMat.needsUpdate = true;
-      console.log(scene);
     });
   }
   titleButton.addEventListener('click', getTitle);
