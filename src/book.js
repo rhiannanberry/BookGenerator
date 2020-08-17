@@ -5,8 +5,8 @@ import * as THREE from 'three/build/three.module';
 import { Vector3 } from 'three';
 
 function loadNormalMap() {
-  const nMap = new THREE.TextureLoader().load('../Normal.png');
-  const tMap = new THREE.TextureLoader().load('../Texture.png');
+  const nMap = new THREE.TextureLoader().load('Normal.png');
+  const tMap = new THREE.TextureLoader().load('Texture.png');
 
   nMap.flipY = false;
   tMap.flipY = false;
